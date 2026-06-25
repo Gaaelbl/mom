@@ -474,24 +474,18 @@
 
 /* ══ ABRIR SOBRE ══ */
 (function(){
-  const sobre = document.getElementById('sobre');
-  const scene = document.getElementById('scene');
-  const cartaWrap = document.getElementById('cartaWrap');
-  const musica = document.getElementById('musica');
-
-  sobre.addEventListener('click', () => {
-    musica.play();
-
-    scene.style.opacity = '0';
-    scene.style.transform = 'scale(0.82)';
-    scene.style.pointerEvents = 'none';
-
-    setTimeout(() => {
-      scene.style.display = 'none';
+  const sobre=document.getElementById('sobre');
+  const scene=document.getElementById('scene');
+  const cartaWrap=document.getElementById('cartaWrap');
+  sobre.addEventListener('click',()=>{
+    scene.style.opacity='0';
+    scene.style.transform='scale(0.82)';
+    scene.style.pointerEvents='none';
+    setTimeout(()=>{
+      scene.style.display='none';
       cartaWrap.classList.add('visible');
-    }, 480);
+    },480);
   });
-})();
 })();
 
 /* ══ BOTONES SÍ / NO ══ */
