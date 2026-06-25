@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/logo.jpeg">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/logo.jpeg">
+  <link rel="shortcut icon" href="img/logo.jpeg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Mi vida querida</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400;1,400;1,700&family=Yeseva+One&family=IM+Fell+English:ital@0;1&family=Crimson+Pro:ital,wght@0,300;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* reset y base (todo tu css original se mantiene, solo añadimos capa de regalo) */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* CAPA DE REGALO: cubre toda la pantalla, sobre todo lo demás */
+    .gift-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #fff2f0;    /* fondo suave rosita */
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+      transition: opacity 1.2s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 1.2s;
+      backdrop-filter: blur(2px);
+      overflow: hidden;
+    }
+
+    /* cuando se oculta, se desvanece y deja de interactuar */
+    .gift-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* contenedor del regalo (caja principal) */
+    .gift-box {
+      position: relative;
+      width: 420px;
+      max-width: 85vw;
+      aspect-ratio: 1 / 0.9;
+      background: #ffc0cb;  /* rosita claro base (listón blanco y lazo pastel) */
+      border-radius: 28px;
+      box-shadow: 0 40px 45px -20px rgba(160, 70, 90, 0.4), 0 0 0 6px #fff8f0, 0 0 0 12px #ffe2e8;
+      transition: transform 0.4s ease;
+    }
+    .gift-overlay:hover .gift-box {
+      transform: scale(1.02);
+    }
+
+    /* listones blancos (cintas cruzadas) */
+    .ribbon-horizontal,
+    .ribbon-vertical {
+      position: absolute;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      z-index: 5;
+    }
+    .ribbon-horizontal {
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 26px;
+      transform: translateY(-50%);
+      background: linear-gradient(145deg, #ffffff, #f9f2f5);
+      border-top: 1px solid rgba(255,245,240,0.8);
+      border-bottom: 1px solid #ffe0e6;
+    }
+    .ribbon-vertical {
+      top: 0;
+      left: 50%;
+      width: 26px;
+      height: 100%;
+      transform: translateX(-50%);
+      background: linear-gradient(145deg, #ffffff, #f9f2f5);
+      border-left: 1px solid #ffe0e6;
+      border-right: 1px solid rgba(255,245,240,0.8);
+    }
+
+    /* MOÑO CENTRAL: rosa pastel, con lazos */
+    .bow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90px;
+      height: 90px;
+      z-index: 20;
+      cursor: pointer;
+      filter: drop-shadow(0 6px 12px rgba(200, 80, 110, 0.3));
+      transition: transform 0.2s ease;
+    }
+    .bow:hover {
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+    .bow-lobe {
+      position: absolute;
+      background: #ffb7c5;  /* rosa pastel base */
+      border-radius: 50%;
+      width: 52px;
+      height: 52px;
+      box-shadow: 0 8px 14px rgba(170, 70, 90, 0.25);
+    }
+    .bow-lobe-left {
+      left: -22px;
+      top: 12px;
+      transform: rotate(-35deg);
+      background: radial-gradient(circle at 30% 35%, #ffc0d0, #ffa5bb);
+    }
+    .bow-lobe-right {
+      right: -22px;
+      top: 12px;
+      transform: rotate(35deg);
+      background: radial-gradient(circle at 70% 35%, #ffc0d0, #ffa5bb);
+    }
+    .bow-center {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      background: #ffb0c0;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: inset 0 1px 3px rgba(255,255,200,0.8), 0 4px 8px rgba(0,0,0,0.1);
+      z-index: 22;
+    }
+    .bow-tail {
+      position: absolute;
+      width: 38px;
+      height: 58px;
+      background: #ffb7c5;
+      bottom: -42px;
+      left: 50%;
+      transform: translateX(-50%) rotate(12deg);
+      border-radius: 40% 40% 35% 35%;
+      clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+      box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+    }
+    .bow-tail:after {
+      content: '';
+      position: absolute;
+      width: 38px;
+      height: 58px;
+      background: #ffb7c5;
+      left: -6px;
+      top: 0px;
+      transform: rotate(-24deg);
+      border-radius: 40% 40% 35% 35%;
+      clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+    }
+    .bow-tail:before {
+      content: '';
+      position: absolute;
+      width: 38px;
+      height: 58px;
+      background: #ffb7c5;
+      right: -6px;
+      top: 0px;
+      transform: rotate(24deg);
+      border-radius: 40% 40% 35% 35%;
+      clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+    }
+    /* pequeños detalles brillantes */
+    .spark {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #fff9e0;
+      border-radius: 50%;
+      opacity: 0.7;
+      filter: blur(1px);
+      animation: twinkle 2s infinite alternate;
+    }
+    @keyframes twinkle {
+      0% { opacity: 0.2; transform: scale(1);}
+      100% { opacity: 1; transform: scale(1.2);}
+    }
+
+    /* animación de "abrir regalo": los listones y moño se desatan, la caja se abre con elegancia */
+    .gift-box.opening-animation {
+      animation: giftOpenAnim 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes giftOpenAnim {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      40% {
+        transform: scale(1.08) rotate(1deg);
+      }
+      100% {
+        transform: scale(0) rotate(10deg);
+        opacity: 0;
+      }
+    }
+
+    /* animación de los listones y moño flotando suavemente para desaparecer */
+    .ribbon-horizontal, .ribbon-vertical, .bow {
+      transition: all 0.5s ease-out;
+    }
+    .gift-box.opening-animation .ribbon-horizontal,
+    .gift-box.opening-animation .ribbon-vertical,
+    .gift-box.opening-animation .bow {
+      animation: ribbonFly 0.7s forwards;
+    }
+    @keyframes ribbonFly {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-80px) rotate(15deg);
+        opacity: 0;
+      }
+    }
+    .gift-box.opening-animation .ribbon-vertical {
+      animation: ribbonFlyVertical 0.7s forwards;
+    }
+    @keyframes ribbonFlyVertical {
+      0% {
+        transform: translateX(-50%) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-30%) translateY(-90px) rotate(-10deg);
+        opacity: 0;
+      }
+    }
+
+    /* transición general de la capa overlay */
+    .gift-overlay {
+      transition: opacity 1s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 1s;
+    }
+
+    /* todo lo que es TU contenido original: inicialmente visible pero oculto por el overlay */
+    
+    /* tu css original integro (desde body hacia abajo) */
+    body {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #fff5f0 0%, #ffe4e8 50%, #ffd9e0 100%);
+      font-family: 'Crimson Pro', serif;
+      position: relative;
+    }
+
+    .collage-container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 2rem 1.2rem 4rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .titulo-collage {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .titulo-collage h1 {
+      font-family: 'Pinyon Script', cursive;
+      font-size: 3.5rem;
+      color: #b53b4a;
+      text-shadow: 2px 2px 6px rgba(180, 60, 80, 0.15);
+      letter-spacing: 2px;
+    }
+    .titulo-collage p {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      color: #b35d6e;
+      font-size: 1rem;
+      letter-spacing: 1px;
+    }
+
+    .galeria-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card-foto {
+      width: 100%;
+      background: #fffef7;
+      border-radius: 28px;
+      box-shadow: 0 20px 30px -12px rgba(150, 50, 70, 0.25);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid rgba(230, 160, 180, 0.4);
+    }
+    .card-foto:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 28px 36px -14px rgba(150, 50, 70, 0.35);
+    }
+
+    .marco-foto {
+      background: #ffffff;
+      padding: 18px 18px 8px 18px;
+      border-radius: 20px 20px 16px 16px;
+      margin: 16px 16px 0 16px;
+      box-shadow: inset 0 0 0 1px rgba(200, 120, 140, 0.2), 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .marco-foto img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+      border-radius: 14px;
+      background: #f2e6e0;
+    }
+
+       .marco-foto.rectangular img {
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+    }
+
+    .marco-foto.vertical {
+      padding: 12px 12px 8px 12px;
+    }
+    .marco-foto.vertical img {
+      aspect-ratio: 9 / 16;
+      object-fit: contain;
+      width: 100%;
+      height: auto;
+      background: #f2e6e0;
+    }
+
+    .texto-foto {
+      padding: 1.2rem 1rem 1.5rem;
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #3e2a27;
+      text-align: left;
+      background: linear-gradient(120deg, #fffaf5, #fff5ed);
+      margin: 10px 16px 22px 16px;
+      border-radius: 18px;
+      border-left: 3px solid #e6a0b0;
+      border-right: 1px solid #f0cdd4;
+      box-shadow: inset 0 1px 3px rgba(255,245,235,0.8), 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .texto-foto p {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .btn-carta {
+      text-align: center;
+      margin: 2rem auto 1rem;
+      position: relative;
+      z-index: 10;
+    }
+    .btn-carta button {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #d47a8a, #b53b4a);
+      border: none;
+      padding: 12px 32px;
+      border-radius: 48px;
+      color: #fff9f5;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(180, 50, 80, 0.35);
+      transition: all 0.25s ease;
+    }
+    .btn-carta button:hover {
+      transform: scale(1.02);
+      background: linear-gradient(135deg, #e08a9a, #c74b5a);
+      box-shadow: 0 10px 24px rgba(180, 50, 80, 0.45);
+    }
+
+    .heart-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .heart {
+      position: absolute;
+      bottom: -20px;
+      font-size: 1rem;
+      animation: floatUp linear infinite;
+      pointer-events: none;
+      user-select: none;
+    }
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.6;
+      }
+      80% {
+        opacity: 0.25;
+      }
+      100% {
+        transform: translateY(-110vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .collage-container {
+        padding: 1.2rem 0.8rem 3rem;
+      }
+      .titulo-collage h1 {
+        font-size: 2.3rem;
+      }
+      .marco-foto {
+        padding: 12px 12px 6px 12px;
+      }
+      .texto-foto {
+        font-size: 0.85rem;
+      }
+      .gift-box {
+        width: 310px;
+      }
+      .bow {
+        width: 75px;
+        height: 75px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- CAPA DE REGALO: animación de entrada con listones y moño -->
+<div class="gift-overlay" id="giftOverlay">
+  <div class="gift-box" id="giftBox">
+    <!-- listones blancos -->
+    <div class="ribbon-horizontal"></div>
+    <div class="ribbon-vertical"></div>
+    <!-- moño central rosa pastel -->
+    <div class="bow" id="bowButton">
+      <div class="bow-lobe bow-lobe-left"></div>
+      <div class="bow-lobe bow-lobe-right"></div>
+      <div class="bow-center"></div>
+      <div class="bow-tail"></div>
+      <div class="spark" style="top: -8px; left: 30px;"></div>
+      <div class="spark" style="bottom: 5px; right: -10px; animation-delay: 0.5s;"></div>
+    </div>
+    <!-- pequeños brillos decorativos -->
+    <div class="spark" style="top: 15%; left: 12%; width: 6px; height: 6px;"></div>
+    <div class="spark" style="bottom: 20%; right: 15%; animation-duration: 1.4s;"></div>
+  </div>
+  <!-- EL TEXTO "HAZ CLIC EN EL MOÑO" HA SIDO ELIMINADO -->
+</div>
+
+<!-- TODO EL CONTENIDO ORIGINAL DE TU PÁGINA (SIN MODIFICACIONES ESTRUCTURALES) -->
+<div class="heart-bg" id="heartBg"></div>
+
+<div class="collage-container">
+  <div class="titulo-collage">
+    <h1>⋆ ˚｡⋆୨ Celina ୧⋆ ˚｡⋆</h1>
+    <p>cada foto representa momentos donde tu felicidad se hizo mi felicidad</p>
+  </div>
+
+  <div class="galeria-vertical">
+    <!-- FOTO 1 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto1.jpeg" alt="Foto 1" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto1.jpeg'">
+      </div>
+      <div class="texto-foto">
+         <p>✧ Una gran foto junto a tus seres queridos más especiales, junto a tu familia y las personas que siempre te acompañaron en las buenas y en las malas. Sin duda, tuvieron una vida muy complicada desde que nacieron, pero tú fuiste quien les dio un giro de 360° y los hiciste quienes son ahora. A pesar de que ellos no lo vean así, yo siempre te recordaré que fuiste increíble y que nadie en tu lugar hubiera podido hacer lo mismo. Eres la mejor mami. ✧</p>      
+     </div>
+    </div>
+
+    <!-- FOTO 2 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto2.JPG" alt="Recuerdo 2" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto2.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Lo hermosa que te ves en cada foto refleja la alegría con la que vives cada aventura. Siempre me ha admirado tu enorme ilusión por conocer nuevos lugares, descubrir cosas diferentes y seguir explorando el mundo con la misma emoción de siempre. Aunque quizá no lo demuestre mucho, me encanta cuando me envías fotos de tus viajes, de los paisajes que visitas o de esos pequeños momentos que te hacen feliz. A través de cada imagen puedo imaginar lo increíble que la estás pasando, y eso también me alegra a mí. Nunca pierdas esa curiosidad y esas ganas de seguir viviendo experiencias tan bonitas. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 3 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto3.JPG" alt="Recuerdo 3" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto3.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Como dije, es muy bonito ver los lugares tan increíbles que visitas y los paisajes que tienes la oportunidad de conocer. Imagino lo refrescante que debe sentirse respirar un aire nuevo, puro y diferente mientras disfrutas cada momento de tus viajes. Además, siempre sales hermosa en las fotos, pero creo que eso se debe a que haces cada cosa con ilusión y entusiasmo. Al final, cuando haces algo que realmente te emociona, esa felicidad se nota y hace que todo se vea aún más especial. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 4 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto4.JPG" alt="Recuerdo 4" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto4.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Qué hermoso es Acapulco, pero si soy sincero, lo que más resalta en la foto eres tú, mi bella mami. Siempre encuentras la manera de brillar en cada fotografía, no solo por lo hermosa que te ves, sino por la alegría y la luz que transmites. Espero que sigas llenando tu álbum de momentos tan bonitos como este y que dentro de un tiempo podamos ver muchas más fotos tuyas sonriendo y disfrutando de la vida. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 5 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto5.JPG" alt="Recuerdo 5" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto5.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Verte sentada sobre esa gran mano de madera me hace pensar en la libertad con la que vives cada aventura. Siempre has tenido el valor de ir más allá, de conocer nuevos caminos y de disfrutar cada oportunidad que la vida te regala. Esa foto no solo muestra un paisaje hermoso, también refleja tu espíritu libre, fuerte y lleno de ganas de seguir descubriendo el mundo. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 6 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto6.JPG" alt="Recuerdo 6" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto6.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Hay algo especial en esta foto: el mar infinito, el atardecer iluminando el horizonte y tú disfrutando del momento. Parece una de esas escenas que se quedan grabadas para siempre en la memoria. Me encanta verte tan feliz, porque cuando sonríes así transmites una tranquilidad que hace que todo a tu alrededor se vea aún más bonito. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 7 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto7.JPG" alt="Recuerdo 7" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto7.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ No importa cuántas fotos existan de lugares increíbles, siempre siento que las tuyas tienen algo diferente. Tal vez sea porque detrás de cada paisaje hay una historia, un sueño cumplido o una nueva experiencia vivida. Entre montañas, nubes y caminos llenos de historia, lo que más destaca es la alegría con la que disfrutas cada paso del viaje. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 8 (imagen desplazada) -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto8.JPG" alt="Recuerdo 8" style="object-position: left center;" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto8.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Medellín es una ciudad hermosa, llena de vida y rincones sorprendentes, pero una vez más la foto tiene a su mejor protagonista. Me encanta verte recorriendo nuevos lugares, guardando recuerdos y demostrando que nunca es tarde para seguir cumpliendo metas y descubriendo sitios maravillosos. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 9 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto9.JPG" alt="Recuerdo 9" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto9.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Esta foto en Cartagena transmite paz, descanso y felicidad. Después de tanto esfuerzo y dedicación a lo largo de tu vida, me alegra verte disfrutando momentos como este, rodeada de belleza, tranquilidad y experiencias que mereces vivir una y otra vez. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 10 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto10.JPG" alt="Recuerdo 10" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto10.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Frente a la entrada del Museo Inkariy se puede notar tu emoción por conocer más sobre la historia, las culturas y todo aquello que hace especial cada destino. Siempre me ha gustado esa curiosidad tuya por aprender cosas nuevas y aprovechar cada viaje para llevarte algo más que simples fotografías. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 11 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto11.JPG" alt="Recuerdo 11" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto11.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Puede que en esta foto no aparezcas tú, pero aun así siento que habla mucho de ti. Después de haber visto Betty la Fea tantas veces y de haberle tomado tanto cariño a esa historia, llegar hasta la famosa casa y verla con tus propios ojos debió ser un momento muy especial. Me gusta imaginar la emoción que sentiste al estar frente a un lugar que durante años solo conocías a través de una pantalla. Son esas pequeñas cosas las que hacen los viajes inolvidables: no solo conocer nuevos lugares, sino también encontrarse con recuerdos y sueños que nos han acompañado durante mucho tiempo. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 12 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto12.JPG" alt="Recuerdo 12" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto12.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Con esas enormes alas detrás de ti parece que estuvieras lista para volar hacia una nueva aventura. Y, de cierta manera, así eres tú: alguien que nunca deja de soñar, de explorar y de buscar nuevos horizontes. Esta foto refleja perfectamente esa energía tan bonita que te acompaña a donde quiera que vayas. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 13 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto13.jpg" alt="Recuerdo 13" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto13.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Junto a la estatua de Jesús, esta fotografía transmite serenidad y gratitud. Me gusta pensar que también representa la fortaleza y la fe que siempre te han acompañado en los momentos buenos y difíciles. Esa misma fuerza es la que te ha permitido llegar tan lejos y seguir sonriendo con la misma luz de siempre. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 14 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto14.jpg" alt="Recuerdo 14" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto14.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Una de las cosas que más admiro de ti es que nunca le tienes miedo a probar algo nuevo, especialmente cuando se trata de comida. Ya sea un platillo típico, un sabor diferente o algo completamente desconocido, siempre te animas a vivir la experiencia. Esa curiosidad y entusiasmo hacen que cada viaje sea aún más especial y divertido. ✧</p>
+      </div>
+    </div>
+
+    <!-- FOTO 15 -->
+    <div class="card-foto">
+      <div class="marco-foto">
+        <img src="img/foto15.JPG" alt="Recuerdo 15" style="object-position: center -130px;" onerror="this.src='https://placehold.co/500x500/ffe0e6/cf8a9a?text=foto15.jpg'">
+      </div>
+      <div class="texto-foto">
+        <p>✧ Esta foto junto a la llama blanca me parece especialmente tierna. Refleja perfectamente tu cariño por los animales y tu capacidad para encontrar alegría en los pequeños momentos. Son esas experiencias sencillas las que terminan convirtiéndose en algunos de los recuerdos más bonitos, y verte disfrutarlas siempre me saca una sonrisa. ✧</p>
+      </div>
+    </div>
+
+  <div class="btn-carta">
+    <button id="btnVolverCarta">✧  Sorpresa  ✧</button>
+  </div>
+</div>
+
+<script>
+  // ========== MÚSICA DE FONDO (se inicia SOLO al hacer clic en el moño) ==========
+  let cancion = null;
+  let musicaActiva = false;
+
+  function iniciarCancionEnMomentoClic() {
+    if (musicaActiva) return;
+    
+    if (cancion && !cancion.paused) return;
+    
+    const posiblesNombres = ['todotermina', 'todotermina.mpeg', 'todotermina.mp3', 'todotermina.mp4'];
+    
+    function intentarReproducir(indice) {
+      if (indice >= posiblesNombres.length) {
+        console.log("No se encontró el archivo de música.");
+        return;
+      }
+      try {
+        if (cancion) {
+          cancion.pause();
+          cancion = null;
+        }
+        cancion = new Audio(posiblesNombres[indice]);
+        cancion.loop = true;
+        cancion.volume = 0.5;
+        const playPromise = cancion.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            musicaActiva = true;
+            console.log("Canción iniciada con: " + posiblesNombres[indice]);
+          }).catch(() => {
+            intentarReproducir(indice + 1);
+          });
+        }
+      } catch(e) {
+        intentarReproducir(indice + 1);
+      }
+    }
+    
+    intentarReproducir(0);
+  }
+
+  // Botón "Sorpresa" original
+  const btnCarta = document.getElementById('btnVolverCarta');
+  if (btnCarta) {
+    btnCarta.addEventListener('click', () => {
+      if (cancion) { cancion.pause(); cancion.currentTime = 0; }
+      setTimeout(() => { window.location.href = 'mom.html'; }, 50);
+    });
+  }
+
+  // CORAZONES (lluvia)
+  function crearCorazon() {
+    const heart = document.createElement('div');
+    heart.classList.add('heart');
+    const size = Math.floor(Math.random() * (24 - 9 + 1) + 9);
+    heart.style.fontSize = size + 'px';
+    heart.style.left = Math.random() * 100 + '%';
+    heart.style.animationDuration = (Math.random() * (16 - 7) + 7) + 's';
+    heart.style.animationDelay = Math.random() * 15 + 's';
+    const rosas = ['#ffb7c5', '#ffc0cb', '#ffb3c6', '#f7a1c4', '#f2a0b5', '#f5b0c0', '#ff99bb', '#ffb3ba', '#ffc2d1', '#f7c5cc', '#e89bb0', '#ffb7b2'];
+    heart.style.color = rosas[Math.floor(Math.random() * rosas.length)];
+    heart.style.opacity = Math.random() * 0.5 + 0.2;
+    const corazonesChar = ['❤️', '💗', '💖', '💕', '💓', '💘', '🌸', '✨', '💞'];
+    heart.innerHTML = corazonesChar[Math.floor(Math.random() * corazonesChar.length)];
+    document.getElementById('heartBg').appendChild(heart);
+    heart.addEventListener('animationend', () => heart.remove());
+  }
+  setInterval(() => {
+    if (document.querySelectorAll('.heart').length < 70) {
+      const num = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < num; i++) crearCorazon();
+    }
+  }, 500);
+
+  // ========== ANIMACIÓN DE ENTRADA: clic en moño ==========
+  const giftOverlay = document.getElementById('giftOverlay');
+  const giftBox = document.getElementById('giftBox');
+  const bowButton = document.getElementById('bowButton');
+
+  let alreadyOpened = false;
+
+  function openGiftAndReveal() {
+    if (alreadyOpened) return;
+    alreadyOpened = true;
+    
+    // INICIAR MÚSICA EXACTAMENTE AL HACER CLIC EN EL MOÑO
+    iniciarCancionEnMomentoClic();
+    
+    if (!giftBox || !giftOverlay) return;
+    giftBox.classList.add('opening-animation');
+    setTimeout(() => {
+      giftOverlay.classList.add('hidden');
+    }, 900);
+  }
+
+  bowButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openGiftAndReveal();
+  });
+</script>
+</body>
+</html>
